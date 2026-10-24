@@ -1,0 +1,15 @@
+const P = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+export const IconToday = () => (<svg viewBox="0 0 24 24" {...P}><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/></svg>);
+export const IconPlan = () => (<svg viewBox="0 0 24 24" {...P}><path d="M3 9v6M21 9v6M6 6v12M18 6v12M6 12h12"/></svg>);
+export const IconFood = () => (<svg viewBox="0 0 24 24" {...P}><path d="M7 3v8a2 2 0 0 0 2 2v8M11 3v6M3 3v6a4 4 0 0 0 4 4M17 21V3c2.5 1.5 4 4 4 8h-4"/></svg>);
+export const IconHistory = () => (<svg viewBox="0 0 24 24" {...P}><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6"/></svg>);
+export const IconCheck = () => (<svg viewBox="0 0 24 24" {...P} strokeWidth={3}><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>);
+export const IconClose = () => (<svg viewBox="0 0 24 24" {...P}><path d="M6 6l12 12M18 6L6 18"/></svg>);
+export const IconLeft = () => (<svg viewBox="0 0 24 24" {...P}><path d="M15 5l-7 7 7 7"/></svg>);
+export const IconRight = () => (<svg viewBox="0 0 24 24" {...P}><path d="M9 5l7 7-7 7"/></svg>);
+export const IconBarcode = () => (<svg viewBox="0 0 24 24" {...P}><path d="M4 6v12M7 6v12M11 6v12M14 6v12M17 6v12M20 6v12"/></svg>);
+export const IconSpark = () => (<svg viewBox="0 0 24 24" {...P}><path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></svg>);
+export const IconList = () => (<svg viewBox="0 0 24 24" {...P}><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>);
+export const IconPlay = () => (<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg>);
+export const IconFridge = () => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M5 10h14M9 6v1.5M9 13.5v3"/></svg>);
+export const IconCamera = () => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>);
