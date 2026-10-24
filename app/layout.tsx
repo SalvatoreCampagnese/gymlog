@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import "./globals.css";
+import { ROLE_COOKIE, parseRoleCookie } from "@/lib/supabase/env";
 import { StoreProvider } from "@/lib/client/store";
 import { TabBar, SyncBadge } from "@/components/Nav";
 
@@ -18,7 +20,9 @@ export const viewport: Viewport = {
   themeColor: "#1b2531",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // set by the middleware: the client app (diary, offline queue, tab bar) only for clients
+  const who = parseRoleCookie((await cookies()).get(ROLE_COOKIE)?.value);
   return (
     <html lang="it">
       <head>
@@ -30,11 +34,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <StoreProvider>
-          <SyncBadge />
-          {children}
-          <TabBar />
-        </StoreProvider>
+        {who?.role === "client" ? (
+          <StoreProvider userId={who.userId}>
+            <SyncBadge />
+            {children}
+            <TabBar />
+          </StoreProvider>
+        ) : (
+          children
+        )}
       </body>
     </html>
   );

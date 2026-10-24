@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="it">
+  <body style="margin:0;padding:24px;background:#1b2531;font-family:Helvetica,Arial,sans-serif;color:#e9eef4">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto">
+      <tr>
+        <td>
+          <h1 style="font-size:28px;margin:0 0 12px">GymLog</h1>
+          <p style="font-size:16px;line-height:1.5;margin:0 0 20px">
+            Ciao! Il tuo personal trainer ti ha creato l'accesso a GymLog, dove trovi la tua scheda, registri gli allenamenti e i pasti.
+            Tocca il pulsante per entrare.
+          </p>
+          <p style="margin:0 0 24px">
+            <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email"
+               style="display:inline-block;background:#f2c230;color:#1b1606;text-decoration:none;font-weight:bold;padding:14px 22px;border-radius:12px">
+              Entra in GymLog
+            </a>
+          </p>
+          <p style="font-size:13px;line-height:1.5;color:#9aa7b5;margin:0">
+            Il link vale un'ora e si usa una volta sola. Puoi entrare anche con email e password che ti ha dato il personal.
+            Se non aspettavi questa email, ignorala.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

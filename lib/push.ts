@@ -1,6 +1,6 @@
 import "server-only";
 import webpush from "web-push";
-import { readJsonCache, writeJsonCache } from "./storage";
+import { createAdminClient } from "./supabase/server";
 
 export function vapidReady() {
   const pub = process.env.VAPID_PUBLIC_KEY, priv = process.env.VAPID_PRIVATE_KEY;
@@ -9,13 +9,13 @@ export function vapidReady() {
   return true;
 }
 
-// The id of the only rest timer that is allowed to fire. A newer timer (or a skip) replaces it.
-export async function setActiveTimer(id: string | null) {
-  await writeJsonCache("rest-timer", { id, at: Date.now() });
+// The id of the only rest timer of this user that is allowed to fire. A newer timer (or a skip) replaces it.
+export async function setActiveTimer(userId: string, id: string | null) {
+  await createAdminClient().from("rest_timers").upsert({ user_id: userId, timer_id: id, updated_at: new Date().toISOString() });
 }
-export async function activeTimer(): Promise<string | null> {
-  const j = await readJsonCache<{ id: string | null }>("rest-timer");
-  return j?.id ?? null;
+export async function activeTimer(userId: string): Promise<string | null> {
+  const { data } = await createAdminClient().from("rest_timers").select("timer_id").eq("user_id", userId).maybeSingle();
+  return (data?.timer_id as string | null) ?? null;
 }
 
 export async function sendPush(sub: webpush.PushSubscription, payload: object) {

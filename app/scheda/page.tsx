@@ -1,20 +1,17 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useStore } from "@/lib/client/store";
 import { useToday } from "@/lib/client/hooks";
 import { prettyName, resolveDate, sentence, targetText, usable } from "@/lib/resolve";
 import { IconPlay } from "@/components/Icons";
 
 export default function Scheda() {
-  const { program, state, reloadProgram } = useStore();
+  const { program, state } = useStore();
   const today = useToday();
   const current = useMemo(() => (program ? resolveDate(program, today) : null), [program, today]);
   const [pid, setPid] = useState<string>("");
   const [wi, setWi] = useState<number>(1);
-  const [msg, setMsg] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (current && !pid) {
@@ -25,30 +22,10 @@ export default function Scheda() {
 
   if (!program) return <main className="shell"><p className="muted">Carico la scheda…</p></main>;
   const p = program.programs.find((x) => x.id === pid) ?? current?.program;
-  if (!p) return <main className="shell"><p className="muted">Nessuna scheda.</p></main>;
+  if (!p) return <NoPlan />;
   const week = p.weeks.find((w) => w.index === wi) ?? p.weeks[0];
   const doneThisWeek = new Set(state.sessions.filter((s) => s.programId === p.id && s.week === week?.index && s.finishedAt).map((s) => s.workout));
   const loggedCount = state.sessions.filter((s) => s.programId === p.id && s.finishedAt).length;
-
-  async function upload(f: File) {
-    setBusy(true);
-    setMsg(null);
-    const fd = new FormData();
-    fd.append("file", f);
-    try {
-      const res = await fetch("/api/sheet", { method: "POST", body: fd });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j.error);
-      await reloadProgram();
-      setPid("");
-      setMsg(`Scheda caricata: ${j.programs.length} fogli letti.`);
-    } catch (e: any) {
-      setMsg(e.message || "Caricamento non riuscito");
-    } finally {
-      setBusy(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  }
 
   return (
     <main className="shell stack-lg">
@@ -172,16 +149,18 @@ export default function Scheda() {
         <a className="btn ghost block" href="/api/export">Scarica tutte le schede con report</a>
       </section>
 
-      <section className="card stack">
-        <h2>Nuova scheda</h2>
-        <p className="muted small">Quando il personal ti manda l'Excel aggiornato, caricalo qui: le schede si aggiornano subito, i tuoi log restano.</p>
-        <input ref={fileRef} type="file" accept=".xlsx" hidden onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
-        <button className="btn block" disabled={busy} onClick={() => fileRef.current?.click()}>
-          {busy ? "Carico e controllo il file…" : "Carica Excel della scheda"}
-        </button>
-        {msg ? <p className="small">{msg}</p> : null}
-        {program.uploadedAt ? <p className="faint tiny">Ultimo caricamento: {new Date(program.uploadedAt).toLocaleString("it-IT")}</p> : null}
-      </section>
+      <p className="faint tiny" style={{ textAlign: "center" }}>
+        Scheda caricata dal tuo personal{program.uploadedAt ? ` il ${new Date(program.uploadedAt).toLocaleDateString("it-IT")}` : ""}.
+      </p>
+    </main>
+  );
+}
+
+function NoPlan() {
+  return (
+    <main className="shell stack-lg">
+      <header className="page-head"><h1>Scheda</h1></header>
+      <p className="empty">Il tuo personal non ha ancora caricato la scheda. Appena lo fa, la trovi qui.</p>
     </main>
   );
 }

@@ -1,4 +1,4 @@
-import type { AppState, FoodEntry, PantryItem, SavedFood, Session } from "./types";
+import type { AppState, FoodEntry, SavedFood, Session } from "./types";
 
 export type Op =
   | { type: "upsertSession"; session: Session }
@@ -9,9 +9,7 @@ export type Op =
   | { type: "setWeight"; date: string; kg: number | null }
   | { type: "setWeightOffset"; kg: number }
   | { type: "upsertSavedFood"; food: SavedFood }
-  | { type: "deleteSavedFood"; key: string }
-  | { type: "upsertPantry"; items: PantryItem[] }
-  | { type: "deletePantry"; id: string };
+  | { type: "deleteSavedFood"; key: string };
 
 export function applyOp(s: AppState, op: Op) {
   switch (op.type) {
@@ -55,18 +53,6 @@ export function applyOp(s: AppState, op: Op) {
     }
     case "deleteSavedFood":
       s.savedFoods = s.savedFoods.filter((x) => x.key !== op.key);
-      break;
-    case "upsertPantry": {
-      s.pantry ??= [];
-      for (const it of op.items) {
-        const i = s.pantry.findIndex((x) => x.id === it.id);
-        if (i >= 0) s.pantry[i] = it;
-        else s.pantry.push(it);
-      }
-      break;
-    }
-    case "deletePantry":
-      s.pantry = (s.pantry ?? []).filter((x) => x.id !== op.id);
       break;
   }
 }

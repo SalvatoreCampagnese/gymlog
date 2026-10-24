@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { updateState } from "@/lib/storage";
+import { createAdminClient } from "@/lib/supabase/server";
 import { todayISO } from "@/lib/resolve";
 
 export const dynamic = "force-dynamic";
 
-// Receives Apple Health totals from an iOS Shortcut. Auth: ?token=HEALTH_TOKEN (Shortcuts can't log in).
+// Receives Apple Health totals from an iOS Shortcut. Auth: ?token=<the client's personal health_token> (Shortcuts can't log in).
 // Accepts JSON body or query params: date, active, resting, steps, exercise, weight.
 // Values may arrive as "523,4 kcal" or "8.120 passi": parse them loosely.
 function num(v: unknown): number | undefined {
@@ -30,9 +31,12 @@ function normDate(v: unknown): string {
 
 async function handle(req: Request) {
   const url = new URL(req.url);
-  const token = process.env.HEALTH_TOKEN;
-  if (!token || url.searchParams.get("token") !== token)
-    return NextResponse.json({ error: "Token non valido" }, { status: 401 });
+  const token = url.searchParams.get("token") ?? "";
+  const admin = createAdminClient();
+  const { data: owner } = /^[\w-]{20,}$/.test(token)
+    ? await admin.from("profiles").select("id").eq("health_token", token).eq("role", "client").maybeSingle()
+    : { data: null };
+  if (!owner) return NextResponse.json({ error: "Token non valido" }, { status: 401 });
   let body: Record<string, unknown> = {};
   if (req.method === "POST") {
     const text = await req.text();
@@ -70,7 +74,7 @@ async function handle(req: Request) {
   const steps = pick("steps", 120000);
   const exerciseMin = pick("exercise", 1440);
   const weight = pick("weight", 300, false);
-  await updateState((s) => {
+  await updateState(admin, owner.id as string, (s) => {
     s.health ??= {};
     const prev = { ...(s.health[date] ?? { updatedAt: "" }) };
     // clean up values saved before the range check existed

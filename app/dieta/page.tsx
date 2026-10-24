@@ -6,7 +6,6 @@ import { addDays, dietFor, longDate, mondayOf, resolveDate, sentence } from "@/l
 import { KcalHero, MacroBars } from "@/components/Macros";
 import { AddFood, MacroCard, MacroLine, MEALS } from "@/components/AddFood";
 import { Sheet } from "@/components/Sheet";
-import { MealPlanner } from "@/components/MealPlanner";
 import type { FoodEntry } from "@/lib/types";
 
 export default function Dieta() {
@@ -17,7 +16,6 @@ export default function Dieta() {
   const { target, entries, eaten, resolved } = useDay(d);
   const [adding, setAdding] = useState<string | null>(null);
   const [editing, setEditing] = useState<FoodEntry | null>(null);
-  const [planning, setPlanning] = useState(false);
 
   const mon = mondayOf(d);
   const days = useMemo(() => {
@@ -120,10 +118,7 @@ export default function Dieta() {
         ) : null}
       </section>
 
-      <div className="row">
-        <button className="btn primary big grow" onClick={() => setAdding("")}>Aggiungi alimento</button>
-        <button className="btn big" style={{ fontSize: 17 }} onClick={() => setPlanning(true)}>Organizza i pasti</button>
-      </div>
+      <button className="btn primary big block" onClick={() => setAdding("")}>Aggiungi alimento</button>
 
       {byMeal.length ? (
         byMeal.map(({ meal, items }) => {
@@ -180,16 +175,6 @@ export default function Dieta() {
         </section>
       ) : null}
 
-      {planning ? (
-        <MealPlanner
-          date={d}
-          target={target}
-          eaten={eaten}
-          loggedMeals={Array.from(new Set(entries.map((e) => e.meal)))}
-          guidelines={resolved?.program.guidelines ?? []}
-          onClose={() => setPlanning(false)}
-        />
-      ) : null}
       {adding !== null ? <AddFood date={d} initialMeal={adding || undefined} onClose={() => setAdding(null)} /> : null}
       {editing ? (
         <EditEntry

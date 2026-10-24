@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "fs";
 import { parseWorkbook } from "../lib/parser";
 (async () => {
-  const pf = await parseWorkbook(readFileSync("data/scheda.xlsx"));
+  const pf = await parseWorkbook(readFileSync(process.argv[2] || "data/scheda.xlsx"));
   writeFileSync(process.env.OUT || "/tmp/claude-0/out.json", JSON.stringify(pf, null, 1));
   console.log("athlete", pf.athlete);
   for (const p of pf.programs) {

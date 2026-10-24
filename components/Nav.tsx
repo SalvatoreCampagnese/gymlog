@@ -4,13 +4,12 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { registerSW } from "@/lib/client/push";
 import { useStore } from "@/lib/client/store";
-import { IconFood, IconFridge, IconHistory, IconPlan, IconToday } from "./Icons";
+import { IconFood, IconHistory, IconPlan, IconToday } from "./Icons";
 
 const TABS = [
   { href: "/", label: "Oggi", Icon: IconToday },
   { href: "/scheda", label: "Scheda", Icon: IconPlan },
   { href: "/dieta", label: "Dieta", Icon: IconFood },
-  { href: "/frigo", label: "Frigo", Icon: IconFridge },
   { href: "/storico", label: "Progressi", Icon: IconHistory },
 ];
 

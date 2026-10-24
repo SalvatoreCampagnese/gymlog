@@ -20,9 +20,15 @@ type Ctx = {
 
 const StoreCtx = createContext<Ctx | null>(null);
 
-const LS_STATE = "gl.state";
-const LS_QUEUE = "gl.queue";
-const LS_PROGRAM = "gl.program";
+// local copies are per user, so two people on the same phone never see each other's data
+const keysFor = (userId: string) => ({ state: `gl.${userId}.state`, queue: `gl.${userId}.queue`, program: `gl.${userId}.program` });
+function dropOtherUsers(userId: string) {
+  try {
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("gl.") && !k.startsWith(`gl.${userId}.`))
+      .forEach((k) => localStorage.removeItem(k));
+  } catch {}
+}
 
 function lsGet<T>(k: string): T | null {
   try {
@@ -33,12 +39,15 @@ function lsGet<T>(k: string): T | null {
   }
 }
 function lsSet(k: string, v: unknown) {
+  if ((window as any).__glSignedOut) return; // a late response must not write data back after logout
   try {
     localStorage.setItem(k, JSON.stringify(v));
   } catch {}
 }
 
-export function StoreProvider({ children }: { children: React.ReactNode }) {
+export function StoreProvider({ userId, children }: { userId: string; children: React.ReactNode }) {
+  const K = keysFor(userId);
+  const LS_STATE = K.state, LS_QUEUE = K.queue, LS_PROGRAM = K.program;
   const [program, setProgram] = useState<ProgramFile | null>(null);
   const [state, setState] = useState<AppState>(emptyState());
   const [loading, setLoading] = useState(true);
@@ -137,10 +146,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (location.pathname.startsWith("/login")) {
-      setLoading(false);
-      return;
-    }
+    dropOtherUsers(userId);
     // instant start from cache, then refresh from server
     const cachedP = lsGet<ProgramFile>(LS_PROGRAM);
     const cachedS = lsGet<AppState>(LS_STATE);

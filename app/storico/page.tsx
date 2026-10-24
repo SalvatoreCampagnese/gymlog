@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useStore } from "@/lib/client/store";
+import { SignOut } from "@/components/SignOut";
 import { cleanLoad, normName, prettyName, shortDate, shownWeight } from "@/lib/resolve";
 import { LineChart } from "@/components/LineChart";
 import { Confirm } from "@/components/Confirm";
@@ -180,6 +181,10 @@ export default function Storico() {
           }}
         />
       ) : null}
+      <section className="card stack">
+        <h2>Account</h2>
+        <SignOut />
+      </section>
     </main>
   );
 }

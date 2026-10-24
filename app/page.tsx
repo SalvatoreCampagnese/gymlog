@@ -30,7 +30,14 @@ export default function Home() {
 
   if (loading && !program) return <main className="shell"><p className="muted">Carico la scheda…</p></main>;
   if (error && !program) return <main className="shell"><p className="err">{error}</p></main>;
-  if (!info) return <main className="shell"><p className="muted">Nessuna scheda trovata nell'Excel.</p></main>;
+  if (!info)
+    return (
+      <main className="shell stack-lg">
+        <header className="page-head"><h1 style={{ textTransform: "capitalize" }}>{longDate(today)}</h1></header>
+        <p className="empty">{program?.programs.length ? "Nessuna scheda in corso in questo periodo." : "Il tuo personal non ha ancora caricato la scheda. Intanto puoi registrare pasti e peso."}</p>
+        <Link href="/dieta" className="btn primary big block">Vai alla dieta</Link>
+      </main>
+    );
 
   const { p, week, doneKeys, next, open } = info;
   const nextWo = week.workouts.find((w) => w.key === next);

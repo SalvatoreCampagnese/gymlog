@@ -11,5 +11,4 @@ export const IconBarcode = () => (<svg viewBox="0 0 24 24" {...P}><path d="M4 6v
 export const IconSpark = () => (<svg viewBox="0 0 24 24" {...P}><path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></svg>);
 export const IconList = () => (<svg viewBox="0 0 24 24" {...P}><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>);
 export const IconPlay = () => (<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg>);
-export const IconFridge = () => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M5 10h14M9 6v1.5M9 13.5v3"/></svg>);
 export const IconCamera = () => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>);

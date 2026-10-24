@@ -57,7 +57,7 @@ export type Program = {
 
 export type ProgramFile = {
   athlete: string;
-  source: string; // "bundled" | uploaded file name
+  source: string; // uploaded file name ("" when the trainer has not uploaded a plan yet)
   uploadedAt: string | null;
   programs: Program[];
 };
@@ -121,24 +121,8 @@ export type HealthDay = {
   updatedAt: string;
 };
 
-export type PantryLocation = "Frigo" | "Freezer" | "Dispensa";
-
-export type PantryItem = {
-  id: string;
-  name: string;
-  brand?: string;
-  qty: string; // as written, e.g. "1 confezione", "6 uova", "500 g"
-  grams?: number; // best estimate of what is left
-  location: PantryLocation;
-  per100?: { kcal: number; protein: number; carbs: number; fat: number };
-  barcode?: string;
-  expires?: string; // yyyy-mm-dd
-  updatedAt: string;
-};
-
 export type AppState = {
   version: 1;
-  pantry?: PantryItem[];
   health?: Record<string, HealthDay>; // date -> Apple Health totals
   sessions: Session[];
   food: Record<string, FoodEntry[]>; // date -> entries
