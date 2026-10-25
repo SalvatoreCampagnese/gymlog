@@ -47,60 +47,115 @@ async function handle(req: Request) {
     }
   }
   const get = (k: string) => body[k] ?? url.searchParams.get(k) ?? undefined;
-  const date = normDate(get("date"));
-  // drop impossible values (e.g. a whole list of samples turned into one number by Shortcuts)
-  const inRange = (v: number | undefined, max: number) => (v !== undefined && v >= 0 && v <= max ? v : undefined);
-  const rejected: string[] = [];
-  // Shortcuts may send a list (one value per sample/hour) as an array or as newline-separated text: sum it
-  const total = (v: unknown): number | undefined => {
-    if (Array.isArray(v)) {
-      const parts = v.map(num).filter((x): x is number => x !== undefined);
-      return parts.length ? parts.reduce((a, b) => a + b, 0) : undefined;
-    }
-    if (typeof v === "string" && /\n/.test(v.trim())) return total(v.trim().split(/\r?\n/));
-    return num(v);
-  };
   const received: Record<string, unknown> = {};
-  const pick = (k: string, max: number, sum = true) => {
-    const rv = get(k);
-    const raw = sum ? total(rv) : num(Array.isArray(rv) ? rv[0] : rv);
-    if (rv !== undefined) received[k] = typeof rv === "string" ? rv.slice(0, 120) : rv;
-    const v = inRange(raw, max);
-    if (raw !== undefined && v === undefined) rejected.push(k);
-    return v;
-  };
-  const active = pick("active", 8000);
-  const resting = pick("resting", 5000);
-  const steps = pick("steps", 120000);
-  const exerciseMin = pick("exercise", 1440);
-  const weight = pick("weight", 300, false);
+  const rejected: string[] = [];
+
+  // per metric: [field, max per day, how several values of the same day combine]
+  const METRICS = [
+    ["active", 8000, "sum"],
+    ["resting", 5000, "sum"],
+    ["steps", 120000, "sum"],
+    ["exercise", 1440, "sum"],
+    ["weight", 300, "last"],
+  ] as const;
+  type Day = { active?: number; resting?: number; steps?: number; exercise?: number; weight?: number };
+  const days: Record<string, Day> = {};
+
+  const multi = METRICS.some(([k]) => get(`${k}_dates`) !== undefined);
+  if (multi) {
+    // Simple shortcut: for each metric the list of values and the list of their dates
+    // (Find Health Samples, last N days, grouped by day). Values are matched to dates by position.
+    for (const [k, max, mode] of METRICS) {
+      const vals = list(get(k));
+      const dates = list(get(`${k}_dates`));
+      if (!vals.length) continue;
+      received[k] = vals.length;
+      if (dates.length !== vals.length) {
+        rejected.push(`${k}: ${vals.length} valori ma ${dates.length} date`);
+        continue;
+      }
+      vals.forEach((raw, i) => {
+        const day = dayOf(dates[i]);
+        const v = num(raw);
+        if (!day || v === undefined) return;
+        const d = (days[day] ??= {});
+        d[k] = mode === "sum" ? (d[k] ?? 0) + v : v;
+      });
+      for (const [day, d] of Object.entries(days)) {
+        const v = d[k];
+        if (v !== undefined && (v < 0 || v > max)) {
+          rejected.push(`${k} ${day}`);
+          delete d[k];
+        }
+      }
+    }
+  } else {
+    // Old shortcut: one day (date, default today) with one total per metric
+    const date = normDate(get("date"));
+    const total = (v: unknown): number | undefined => {
+      const parts = list(v).map(num).filter((x): x is number => x !== undefined);
+      return parts.length ? parts.reduce((a, b) => a + b, 0) : undefined;
+    };
+    const d: Day = {};
+    for (const [k, max, mode] of METRICS) {
+      const rv = get(k);
+      if (rv === undefined) continue;
+      received[k] = typeof rv === "string" ? rv.slice(0, 120) : rv;
+      const raw = mode === "sum" ? total(rv) : num(list(rv)[0]);
+      if (raw === undefined) continue;
+      if (raw < 0 || raw > max) rejected.push(k);
+      else d[k] = raw;
+    }
+    days[date] = d;
+  }
+
+  const now = new Date().toISOString();
   await updateState(admin, owner.id as string, (s) => {
     s.health ??= {};
-    const prev = { ...(s.health[date] ?? { updatedAt: "" }) };
-    // clean up values saved before the range check existed
-    if ((prev.active ?? 0) > 8000) delete prev.active;
-    if ((prev.resting ?? 0) > 5000) delete prev.resting;
-    if ((prev.steps ?? 0) > 120000) delete prev.steps;
-    s.health[date] = {
-      ...prev,
-      ...(active !== undefined ? { active: Math.round(active) } : {}),
-      ...(resting !== undefined ? { resting: Math.round(resting) } : {}),
-      ...(steps !== undefined ? { steps: Math.round(steps) } : {}),
-      ...(exerciseMin !== undefined ? { exerciseMin: Math.round(exerciseMin) } : {}),
-      updatedAt: new Date().toISOString(),
-    };
-    if (weight !== undefined && weight > 30 && weight < 300) s.weight[date] = Math.round(weight * 10) / 10;
+    for (const [date, d] of Object.entries(days)) {
+      const prev = { ...(s.health[date] ?? { updatedAt: "" }) };
+      if ((prev.active ?? 0) > 8000) delete prev.active;
+      if ((prev.resting ?? 0) > 5000) delete prev.resting;
+      if ((prev.steps ?? 0) > 120000) delete prev.steps;
+      if (d.active === undefined && d.resting === undefined && d.steps === undefined && d.exercise === undefined && d.weight === undefined) continue;
+      s.health[date] = {
+        ...prev,
+        ...(d.active !== undefined ? { active: Math.round(d.active) } : {}),
+        ...(d.resting !== undefined ? { resting: Math.round(d.resting) } : {}),
+        ...(d.steps !== undefined ? { steps: Math.round(d.steps) } : {}),
+        ...(d.exercise !== undefined ? { exerciseMin: Math.round(d.exercise) } : {}),
+        updatedAt: now,
+      };
+      if (d.weight !== undefined && d.weight > 30 && d.weight < 300) s.weight[date] = Math.round(d.weight * 10) / 10;
+    }
   });
+
+  const round = (d: Day) => Object.fromEntries(Object.entries(d).map(([k, v]) => [k, Math.round((v as number) * 10) / 10]));
   return NextResponse.json({
     ok: rejected.length === 0,
-    date,
-    active,
-    resting,
-    steps,
-    exercise: exerciseMin,
-    weight,
-    ...(rejected.length ? { scartati: rejected, motivo: "valori impossibili: ogni campo deve usare il proprio Valore", ricevuti: received } : {}),
+    giorni: Object.fromEntries(Object.entries(days).sort().map(([k, d]) => [k, round(d)])),
+    ...(rejected.length ? { scartati: rejected, ricevuti: received } : {}),
   });
+}
+
+/** Shortcuts sends lists as JSON arrays or as text with one item per line. */
+function list(v: unknown): string[] {
+  if (v === undefined || v === null || v === "") return [];
+  if (Array.isArray(v)) return v.map((x) => String(x).trim()).filter(Boolean);
+  return String(v).split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+}
+
+const IT_MONTHS = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
+/** The calendar day of a sample's start date: ISO 8601 ("2026-10-25T00:00:00+01:00"), 25/10/2026 or "25 ott 2026". */
+function dayOf(s: string): string | null {
+  const t = (s ?? "").trim().toLowerCase();
+  let m = t.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = t.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})/);
+  if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  m = t.match(/^(\d{1,2})\s+([a-zà-ù]{3})[a-zà-ù]*\.?\s+(\d{4})/);
+  if (m && IT_MONTHS.includes(m[2])) return `${m[3]}-${String(IT_MONTHS.indexOf(m[2]) + 1).padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  return null;
 }
 
 export const POST = handle;
