@@ -16,102 +16,57 @@ const STEPS: Step[] = [
   {
     title: "Crea il comando",
     items: [
-      <>Apri <B>Comandi Rapidi</B> e tocca <B>+</B> (o apri il tuo comando esistente e cancella tutte le azioni).</>,
-      <>Chiamalo esattamente <B>{SHORTCUT_NAME}</B>: serve ai tasti "Aggiorna" e "Sync".</>,
-      <>Tocca la <B>i</B> (o il nome in alto) → attiva <B>Ricevi input</B> e scegli solo <B>Testo</B>. Se compare "Se non c'è input", scegli <B>Continua</B>.</>,
+      <>Apri <B>Comandi Rapidi</B> e tocca <B>+</B> (se hai già il comando, cancella tutte le sue azioni e riparti da qui).</>,
+      <>Chiamalo esattamente <B>{SHORTCUT_NAME}</B>: serve al tasto "Aggiorna".</>,
+      <>Sono solo 5 azioni: 4 ricerche in Salute e un invio. Niente variabili, niente ripetizioni: i conti li fa GymLog.</>,
     ],
   },
   {
-    title: "Quali giorni sincronizzare",
+    title: "Azioni 1–4: i dati da Salute",
     items: [
-      <>Aggiungi <B>Se</B>: <B>Input comando rapido</B> → <B>ha qualsiasi valore</B>.</>,
-      <>Nel ramo <B>Se</B>: aggiungi <B>Testo</B> e dentro metti la variabile <B>Input comando rapido</B>. Sono i giorni scelti dal sito.</>,
-      <>Nel ramo <B>Altrimenti</B> (avvio da automazione o senza giorni) calcoli ieri e oggi:</>,
-      <><B>Data</B> (Data corrente) → <B>Formatta data</B>: Formato data <B>Personalizzato</B>, scrivi <B>yyyy-MM-dd</B>, Formato ora <B>Nessuno</B> → <B>Imposta variabile</B> <B>oggi</B>.</>,
-      <>Di nuovo <B>Data</B> → <B>Regola data</B>: <B>Sottrai 1 giorni</B> → <B>Formatta data</B> come sopra → <B>Imposta variabile</B> <B>ieri</B>.</>,
-      <>Ancora nel ramo Altrimenti: <B>Testo</B> con <B>ieri</B>, a capo, <B>oggi</B> (una data per riga).</>,
-      <>Dopo <B>Fine se</B>: aggiungi <B>Dividi testo</B>, come testo scegli <B>Se risultato</B>, separatore <B>Nuove righe</B>.</>,
+      <>Aggiungi <B>Trova campioni di dati sanitari</B> con Tipo <B>Dispendio calorie attive</B> ("Active Energy").</>,
+      <>Un solo filtro: <B>Data di inizio</B> → <B>negli ultimi</B> → <B>7 giorni</B>. <B>Raggruppa per</B>: <B>Giorno</B> (fondamentale, altrimenti invia migliaia di campioni).</>,
+      <>Facoltativo, se hai iPhone e Apple Watch: filtro <B>Origine</B> → <B>è</B> → il tuo Apple Watch, così i passi non vengono contati due volte.</>,
+      <>Ripeti la stessa azione, con gli stessi filtri, per <B>Dispendio calorie a riposo</B> ("Resting Calories"), <B>Passi</B> ("Steps") e <B>Peso</B> ("Weight"). Il peso puoi saltarlo.</>,
+      <>Tieni premuta ogni azione per vederne il nome: saranno "Campioni di dati sanitari", "… 2", "… 3", "… 4" nell'ordine in cui le hai aggiunte.</>,
     ],
   },
   {
-    title: "Ripeti per ogni giorno",
+    title: "Azione 5: invia a GymLog",
     items: [
-      <>Aggiungi <B>Ripeti con ciascuno</B> sul risultato di Dividi testo. Tutte le azioni dei passi successivi vanno <B>dentro</B> la ripetizione, fino a "Fine ripetizione".</>,
-      <><B>Ottieni date da input</B> con <B>Elemento ripetizione</B> → <B>Imposta variabile</B> <B>inizio</B>.</>,
-      <><B>Regola data</B>: <B>Aggiungi 1 giorni</B> a <B>inizio</B> → <B>Imposta variabile</B> <B>fine</B>.</>,
-    ],
-  },
-  {
-    title: "Blocco 1: calorie attive",
-    items: [
-      <>Aggiungi <B>Trova campioni di dati sanitari</B>, Tipo <B>Dispendio calorie attive</B> (in inglese "Active Energy").</>,
-      <><B>Aggiungi filtro</B> → <B>Data di inizio</B> → <B>è tra</B> → <B>inizio</B> e <B>fine</B>.</>,
-      <>Se hai sia iPhone sia Apple Watch, aggiungi un filtro <B>Origine</B> → <B>è</B> → il tuo Apple Watch: evita di contare due volte.</>,
-      <><B>Raggruppa per</B>: <B>Giorno</B>. Fondamentale: senza questo invia migliaia di campioni.</>,
-      <><B>Ottieni dettagli del campione di dati sanitari</B> → <B>Valore</B> → <B>Imposta variabile</B> <B>attive</B>.</>,
-    ],
-  },
-  {
-    title: "Blocco 2: calorie a riposo",
-    items: [
-      <>Nuovo <B>Trova campioni di dati sanitari</B> (non "Filtra"), Tipo <B>Dispendio calorie a riposo</B> ("Resting Calories").</>,
-      <>Stessi filtri: <B>Data di inizio è tra inizio e fine</B>, <B>Origine</B> Apple Watch, <B>Raggruppa per Giorno</B>.</>,
-      <><B>Ottieni dettagli</B> → <B>Valore</B> → <B>Imposta variabile</B> <B>riposo</B>.</>,
-    ],
-  },
-  {
-    title: "Blocco 3: passi",
-    items: [
-      <>Nuovo <B>Trova campioni di dati sanitari</B>, Tipo <B>Passi</B> ("Steps").</>,
-      <>Stessi filtri: <B>tra inizio e fine</B>, <B>Origine</B> Apple Watch, <B>Raggruppa per Giorno</B>.</>,
-      <><B>Ottieni dettagli</B> → <B>Valore</B> → <B>Imposta variabile</B> <B>passi</B>.</>,
-    ],
-  },
-  {
-    title: "Blocco 4: peso (facoltativo)",
-    items: [
-      <>Nuovo <B>Trova campioni di dati sanitari</B>, Tipo <B>Peso</B> ("Weight"), filtro <B>Data di inizio è tra inizio e fine</B>.</>,
-      <><B>Ordina per</B> Data di inizio, <B>Più recenti prima</B>, <B>Limite</B> attivo a <B>1</B>.</>,
-      <><B>Ottieni dettagli</B> → <B>Valore</B> → <B>Imposta variabile</B> <B>peso</B>. Nei giorni senza pesata resta vuoto e GymLog lo ignora.</>,
-    ],
-  },
-  {
-    title: "Invia a GymLog (sempre dentro la ripetizione)",
-    items: [
-      <>Aggiungi <B>Ottieni contenuti dell'URL</B> e incolla l'indirizzo che copi qui sopra.</>,
-      <>Opzioni: <B>Metodo</B> POST, <B>Corpo della richiesta</B> JSON.</>,
-      <>Aggiungi 5 campi di tipo <B>Testo</B> (non Numero: con Numero si perde la virgola dei decimali): <B>date</B>, <B>active</B>, <B>resting</B>, <B>steps</B>, <B>weight</B>.</>,
-      <>Valori: <B>date</B> = <B>Elemento ripetizione</B>; gli altri = le variabili <B>attive</B>, <B>riposo</B>, <B>passi</B>, <B>peso</B>. Non usare "Valore" direttamente: si chiamano tutti uguale.</>,
-      <>Facoltativo: <B>Mostra risultato</B> per vedere la risposta di ogni giorno.</>,
+      <>Aggiungi <B>Ottieni contenuti dell'URL</B> e incolla l'indirizzo che copi qui sopra. Opzioni: <B>Metodo</B> POST, <B>Corpo della richiesta</B> JSON.</>,
+      <>Per ogni ricerca aggiungi 2 campi di tipo <B>Testo</B>: uno con i valori e uno con le date.</>,
+      <>Chiavi <B>active</B> e <B>active_dates</B> → i campioni della 1ª azione; <B>resting</B> e <B>resting_dates</B> → 2ª; <B>steps</B> e <B>steps_dates</B> → 3ª; <B>weight</B> e <B>weight_dates</B> → 4ª.</>,
+      <>Come valore inserisci la variabile dei campioni giusti, poi toccala e scegli la proprietà: <B>Valore</B> per i campi senza "_dates", <B>Data di inizio</B> per quelli con "_dates" (se puoi scegliere il formato, metti <B>ISO 8601</B>).</>,
+      <>Facoltativo: <B>Mostra risultato</B> in fondo, per vedere la risposta.</>,
     ],
   },
   {
     title: "Prova",
     items: [
-      <>Premi ▶ nel comando: senza input sincronizza <B>ieri e oggi</B>. Consenti la lettura di Salute se te lo chiede.</>,
-      <>Poi torna qui e premi <B>Sync</B> su un giorno, o <B>Sincronizza ultimi 7 giorni</B>.</>,
-      <>Ogni risposta deve dire <B>"ok": true</B> con la data giusta e numeri realistici.</>,
+      <>Premi ▶ e consenti la lettura di Salute se te lo chiede.</>,
+      <>La risposta deve dire <B>"ok": true</B> e sotto <B>giorni</B> gli ultimi 7 giorni con calorie, passi e peso realistici.</>,
+      <>Ogni volta che lo lanci aggiorna tutti e 7 i giorni: se un giorno era rimasto a metà, si sistema da solo al giro successivo.</>,
     ],
   },
   {
     title: "Rendilo automatico",
     items: [
       <>Salute è leggibile solo con iPhone sbloccato: un'automazione a mezzanotte con il telefono bloccato spesso fallisce.</>,
-      <>Meglio così: <B>Automazione</B> → <B>+</B> → <B>Sveglia</B> → <B>Quando viene interrotta</B> → <B>Esegui immediatamente</B> → azione <B>Esegui comando</B> → <B>{SHORTCUT_NAME}</B>. Ogni mattina chiude il giorno prima con i totali completi.</>,
-      <>In più puoi aggiungere <B>Ora del giorno</B> alle 22:30, Ogni giorno, Esegui immediatamente: aggiorna la giornata quando sei ancora sveglio.</>,
+      <>Meglio: <B>Automazione</B> → <B>+</B> → <B>Sveglia</B> → <B>Quando viene interrotta</B> → <B>Esegui immediatamente</B> → <B>Esegui comando</B> → <B>{SHORTCUT_NAME}</B>.</>,
+      <>Se vuoi, aggiungine una alle 22:30 (<B>Ora del giorno</B>, Ogni giorno, Esegui immediatamente).</>,
     ],
   },
   {
     title: "Backup del comando",
     items: [
-      <>Quando funziona, tieni premuto il comando → <B>Condividi</B> → <B>Copia link iCloud</B>, oppure dal Mac: tasto destro → <B>Condividi</B> → <B>Esporta file</B>.</>,
+      <>Quando funziona: tieni premuto il comando → <B>Condividi</B> → <B>Copia link iCloud</B>.</>,
       <>Il comando contiene la tua chiave privata: non pubblicare il link.</>,
     ],
   },
 ];
 
-const runUrl = (dates?: string[]) =>
-  `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}` + (dates?.length ? `&input=text&text=${encodeURIComponent(dates.join("\n"))}` : "");
+const runUrl = () => `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}`;
 
 export default function Salute() {
   const { state } = useStore();
@@ -139,18 +94,13 @@ export default function Salute() {
         <div>
           <Link href="/" className="small muted row back-link" style={{ gap: 4, textDecoration: "none" }}><IconLeft /> Oggi</Link>
           <h1 style={{ marginTop: 8 }}>Apple Salute</h1>
-          <p className="sub">Importa le calorie bruciate con l'Apple Watch, i passi e il peso con un comando rapido. Ci vogliono circa 10 minuti, una volta sola.</p>
+          <p className="sub">Importa le calorie bruciate con l'Apple Watch, i passi e il peso con un comando rapido. Ci vogliono pochi minuti, una volta sola.</p>
         </div>
       </header>
 
-      <div className="stack" style={{ gap: 8 }}>
-        <a className="btn primary big block" href={runUrl()} onClick={() => run("now")}>
-          {syncing === "now" ? "Aspetto i dati da Salute…" : "Aggiorna ieri e oggi"}
-        </a>
-        <a className="btn block" href={runUrl(last7.slice().reverse())} onClick={() => run("all")}>
-          {syncing === "all" ? "Sincronizzo 7 giorni…" : "Sincronizza ultimi 7 giorni"}
-        </a>
-      </div>
+      <a className="btn primary big block" href={runUrl()} onClick={() => run("now")}>
+        {syncing === "now" ? "Aspetto i dati da Salute…" : "Aggiorna da Salute (ultimi 7 giorni)"}
+      </a>
 
       <section className="card stack">
         <h2>Ultimi dati ricevuti</h2>
@@ -165,9 +115,6 @@ export default function Salute() {
             <div key={d} className="health-day">
               <span>{d === today ? "Oggi" : shortDate(d)}</span>
               <span className="muted small">{parts.length ? parts.join(", ") : "nessun dato"}</span>
-              <a className="btn sm ghost" href={runUrl([d])} onClick={() => run(d)} aria-label={`Sincronizza ${shortDate(d)}`}>
-                {syncing === d ? "…" : "Sync"}
-              </a>
             </div>
           );
         })}
@@ -211,9 +158,9 @@ export default function Salute() {
         </ol>
         <div className="notice small stack" style={{ gap: 8 }}>
           <p><B>Se qualcosa non va</B></p>
-          <p>"Sta tentando di condividere migliaia di elementi di Salute": manca <B>Raggruppa per Giorno</B> o il filtro <B>Data di inizio è tra inizio e fine</B> in un blocco.</p>
-          <p>Il tasto Sync di un giorno aggiorna invece oggi: il comando non usa ancora l'<B>Input comando rapido</B> (passi 1–3), oppure <B>Ricevi input</B> non è attivo.</p>
-          <p>La risposta dice "scartati": quel campo ha ricevuto un numero impossibile, quasi sempre perché usa il "Valore" di un altro blocco. Riseleziona la variabile giusta.</p>
+          <p>"Sta tentando di condividere migliaia di elementi di Salute": in una ricerca manca <B>Raggruppa per Giorno</B> o il filtro <B>negli ultimi 7 giorni</B>.</p>
+          <p>"scartati" con "N valori ma M date": un campo "_dates" usa i campioni di un'altra ricerca, o la proprietà sbagliata. Ricontrolla che valori e date vengano dalla stessa azione.</p>
+          <p>Numeri troppo alti, per esempio passi doppi: aggiungi il filtro <B>Origine</B> Apple Watch a quella ricerca.</p>
           <p>Un blocco restituisce vuoto: controlla che sia "Trova campioni di dati sanitari" e non "Filtra".</p>
         </div>
         <p className="faint tiny">I nomi delle azioni possono cambiare leggermente con la versione di iOS.</p>
